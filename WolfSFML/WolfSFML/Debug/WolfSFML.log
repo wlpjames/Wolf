@@ -1,0 +1,17 @@
+﻿  Main.cpp
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\main.cpp(34): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\main.cpp(37): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\main.cpp(190): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\main.cpp(201): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  Wolf.cpp
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\wolf.cpp(82): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\wolf.cpp(83): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  neural_net.cpp
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\neural_net.cpp(18): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\neural_net.cpp(27): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\neural_net.cpp(163): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\neural_net.cpp(246): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\neural_net.cpp(386): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\billy\documents\visual studio stuff\projects\wolfsfml\wolfsfml\neural_net.cpp(399): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  Generating Code...
+  WolfSFML.vcxproj -> C:\Users\billy\Documents\Visual Studio Stuff\projects\WolfSFML\Debug\WolfSFML.exe
