@@ -3,7 +3,7 @@
 #include "prey.h"
 
 // This the constructor and it is called when we create an object
-Prey::Prey(float startX, float startY)
+Prey::Prey(float startX, float startY, int speed)
 {
 	srand(time(NULL));
 	position.x = (700/3 * (((float)rand()) / RAND_MAX)) + 700/3;
@@ -12,6 +12,8 @@ Prey::Prey(float startX, float startY)
 	
 	//position.x = startX;
 	//position.y = startY;
+
+	preySpeed = speeds[speed];
 
 	preyShape.setSize(sf::Vector2f(10, 10));
 	preyShape.setPosition(position);
@@ -58,7 +60,7 @@ void Prey::reboundSides()
 
 void Prey::reboundBatOrTop()
 {
-	position.y -= (yVelocity * 30);
+	//position.y -= (yVelocity * 30);
 	yVelocity = -yVelocity;
 }
 
@@ -78,13 +80,16 @@ void Prey::hitBottom()
 }
 
 void Prey::update()
-{
-	// Update the ball position variables
-	//position.y += yVelocity;
-	//position.x += xVelocity;
-	
+{	
 	// Move the ball and the bat
 	preyShape.setPosition(position);
+}
+void Prey::direct_inactive()
+{
+	// Update the ball position variables
+	position.y += yVelocity;
+	position.x += xVelocity;
+
 }
 
 void Prey::direct()

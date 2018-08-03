@@ -5,13 +5,15 @@
 
 
 // This the constructor 
-Wolf::Wolf(float startX, float startY, int windowWidth, int windowHeight)
+Wolf::Wolf(float startX, float startY, int windowWidth, int windowHeight, int speed)
 {
 	//position.x = startX;
 	//position.y = startY;
 	
 	position.x = (windowWidth * (((float)rand()) / RAND_MAX));
 	position.y = (windowHeight * (((float)rand()) / RAND_MAX));
+
+	wolfSpeed = speeds[speed];
 
 	//wolfShape.setSize(sf::Vector2f(10, 10));
 	wolfShape.setRadius(6);

@@ -25,6 +25,8 @@ public:
 	Font font;
 	std::stringstream* pstream;
 
+	
+	int feedGround = 3;
 
 	Loop();//contructor
 
@@ -33,6 +35,6 @@ public:
 	
 	int animate(sf::RenderWindow *window, Pool* pool, Pool *cpy, thread_data* ptrs, void(*f) (thread_data* ptrs));
 	void train(Pool* pool, int sec);
-	void p_inactive(Prey *prey);
+	void p_inactive(Prey *prey, Pool *pool);
 
 };
