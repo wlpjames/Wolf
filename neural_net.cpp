@@ -23,28 +23,37 @@ Pool::Pool() //sets tme seed and builds matrix
 	wolfBrain->champion = 0;
 	preyBrain->champion = 0;
 
-	for (int i = 0; i < pick; i++)
+
+	for (int i = 0; i < wolfBrain->pick; i++)
 	{
 		wolfBrain->survivors[i] = 0;
 	}
-
-	//insert random wolfbrain + preybrain
-	for (int b = 0; b < poolSize; b++) //initiating random values in matrix
+	for (int i = 0; i < preyBrain->pick; i++)
 	{
-		for (int k = 0; k < layers - 1; k++) // for 2 layers + output replace three with kth letter.
+		preyBrain->survivors[i] = 0;
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+void Pool::populate(Brain *brain)
+{
+	//insert random wolfbrain + preybrain for each layer but input
+	for (int b = 0; b < brain->poolSize; b++) //initiating random values in matrix
+	{
+		for (int k = 0; k < brain->layers -1; k++) // for 2 layers + output replace three with kth letter.
 		{
-			for (int i = 0; i < LYR; i++) // lyr == 10
+			for (int i = 0; i < brain->LYR; i++) // lyr == 10
 			{
-				for (int j = 0; j < LYR; j++) // lyr == 10
+				for (int j = 0; j <brain->LYR; j++) // lyr == 10
 				{
-					wolfBrain->w_matrix[b][k][i][j] = randVal(1) - .5; //was - 0.5
-					preyBrain->w_matrix[b][k][i][j] = randVal(1) - .5;//random number between 0.5 & -0.5
+					//wolfBrain->w_matrix[b][k][i][j] = randVal(1) - .5; //was - 0.5
+					//preyBrain->w_matrix[b][k][i][j] = randVal(1) - .5;//random number between 0.5 & -0.5
+					brain->w_matrix[b][k][i][j] = randVal(1) - .5;
 				}
 			}
 		}
 	}
-
-	
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -60,24 +69,23 @@ int Pool::runNet( Prey* prey, Wolf *wolf1, int mem, Brain* brain, bool* controls
 	brain->v_matrix[0][4] = sqrt(pow(prey->getPositionX() - wolf1->getPositionX(), 2)
 						  + pow(prey->getPositionY() - wolf1->getPositionY(), 2));//distance to ball
 	//brain->v_matrix[0][5] = (prey->getPositionX() - wolfX) + (preyY - wolf1->getPositionY());
+	brain->v_matrix[0][5] = bias;
 	
 	//calculates vaues and outputs //counting from 0
-	calcVal(LYR, INPT, 1, mem, brain);
-	calcVal(LYR2, LYR, 2, mem, brain);
-	calcVal(LYR2, LYR2, 3, mem, brain);
-	calcVal(LYR2, LYR2, 4, mem, brain);
-	calcVal(LYR2, LYR, 5, mem, brain);
-	calcVal(LYR2, LYR2, 6, mem, brain);
-	calcVal(LYR2, LYR2, 7, mem, brain);
-	calcVal(LYR2, LYR2, 8, mem, brain);
-	calcVal(OUT, LYR2, 9, mem, brain);
+	
+	for (int i = 1; i < brain->layers-1; i++)
+	{
+		calcVal(brain->LYR, brain->LYR, i, mem, brain);
+	}
+	
+	calcVal(OUT, brain->LYR, brain->layers-1, mem, brain);
 	//calcVal(OUT, LYR2, 6, mem, brain);
 
 	
 	// send to functions here.
 	
 	//bool control[5];	
-		if (brain->v_matrix[layers-1][0] > brain->v_matrix[layers-1][1]) { //left, right
+		if (brain->v_matrix[brain->layers-1][0] > brain->v_matrix[brain->layers-1][1]) { //left, right
 			controls[0] = true;
 			controls[1] = false;
 		}
@@ -86,7 +94,7 @@ int Pool::runNet( Prey* prey, Wolf *wolf1, int mem, Brain* brain, bool* controls
 			controls[1] = true;
 		}
 		
-		if (brain->v_matrix[layers-1][2] > brain->v_matrix[layers-1][3]) 
+		if (brain->v_matrix[brain->layers-1][2] > brain->v_matrix[brain->layers-1][3])
 		{ //up, down
 			controls[2] = true; // result must be array
 			controls[3] = false;
@@ -113,9 +121,11 @@ int Pool::calcVal(int L, int before, int layr, int mem, Brain* brain)
 		{
 			brain->v_matrix[layr][j] += (brain->v_matrix[layr-1][k] * brain->w_matrix[mem][layr - 1][j][k]);
 		}
+		
 		//brain->v_matrix[layr][j] = sigmoid(brain->v_matrix[layr][j]);
 		//sigmoid it here
 	}
+	brain->v_matrix[layr][L - 1] = bias;
 	return 0;
 }
 
@@ -135,7 +145,7 @@ std::stringstream Pool::stat(void)//prints perforance of last group, picks 10 su
 	float low = 1000;
 	float high = 0;
 	float mean = 0;
-	for (int i = 0; i < poolSize; i++)
+	for (int i = 0; i < wolfBrain->poolSize; i++)
 	{
 		if (wolfBrain->results[i] < low)
 		{
@@ -148,7 +158,7 @@ std::stringstream Pool::stat(void)//prints perforance of last group, picks 10 su
 		mean += wolfBrain->results[i];
 		//std::cout << results[i] << " ,";
 	}
-	mean = mean / poolSize;
+	mean = mean / wolfBrain->poolSize;
 	float range = high - low;
 	//could here evaluate results depending on where are in range? would probably bias.
 
@@ -182,7 +192,7 @@ int Pool::eval() // will need to find somthing better than just score
 	int champion = 0;
 	////finds champion
 	float buffer = 0;
-	for (int i = 0; i < poolSize; i++) 
+	for (int i = 0; i < wolfBrain->poolSize; i++) 
 	{
 		if (wolfBrain->results[i] > buffer)
 		{
@@ -193,18 +203,18 @@ int Pool::eval() // will need to find somthing better than just score
 
 	// finds x amount of survivors.
 	
-	struct pair *pairs = (struct pair *)malloc(sizeof(struct pair) * poolSize);
-	for (int i = 0; i < poolSize; i++)
+	struct pair *pairs = (struct pair *)malloc(sizeof(struct pair) * wolfBrain->poolSize);
+	for (int i = 0; i < wolfBrain->poolSize; i++)
 	{
 		pairs[i].pos = i;
 		pairs[i].score = wolfBrain->results[i];
 	}
 
-	qsort(pairs, poolSize, sizeof(struct pair), pair_score_comparator);
- 	for (int i = 0; i < pick; i++)
+	qsort(pairs, wolfBrain->poolSize, sizeof(struct pair), pair_score_comparator);
+ 	for (int i = 0; i < wolfBrain->pick; i++)
 	{
 		wolfBrain->survivors[i] = pairs[i].pos;
-		preyBrain->survivors[i] = pairs[poolSize-i-1].pos;
+		preyBrain->survivors[i] = pairs[wolfBrain->poolSize-i-1].pos;
 	}
 
 	free(pairs);
@@ -217,7 +227,7 @@ int Pool::pEval(void)
 	int champion = 0;
 	////finds champion
 	float buffer = 0;
-	for (int i = 0; i < poolSize; i++)
+	for (int i = 0; i < preyBrain->poolSize; i++)
 	{
 		if (preyBrain->results[i] > buffer)
 		{
@@ -228,15 +238,15 @@ int Pool::pEval(void)
 
 	// finds x amount of survivors.
 
-	struct pair *pairs = (struct pair *)malloc(sizeof(struct pair) * poolSize);
-	for (int i = 0; i < poolSize; i++)
+	struct pair *pairs = (struct pair *)malloc(sizeof(struct pair) * preyBrain->poolSize);
+	for (int i = 0; i < preyBrain->poolSize; i++)
 	{
 		pairs[i].pos = i;
 		pairs[i].score = preyBrain->results[i];
 	}
 
-	qsort(pairs, poolSize, sizeof(struct pair), pair_score_comparator);
-	for (int i = 0; i < pick; i++)
+	qsort(pairs, preyBrain->poolSize, sizeof(struct pair), pair_score_comparator);
+	for (int i = 0; i < preyBrain->pick; i++)
 	{
 		preyBrain->survivors[i] = pairs[i].pos;
 	}
@@ -248,39 +258,39 @@ int Pool::pEval(void)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-bool Pool::mutate(Brain* brain, int x)//takes W_matrix, survivors, destroys others, mutats
+bool Pool::mutate(Brain* brain)//takes W_matrix, survivors, destroys others, mutats
 {
 	//ith survivor = first of ten new
-	for (int b = 0; b < pick; b++) 
+	for (int b = 0; b < brain->pick; b++) 
 	{
-		for (int k = 0; k < layers - 1; k++) // for 2 layers + output (not input)
+		for (int k = 0; k < brain->layers - 1; k++) // for 2 layers + output (not input)
 		{
-			for (int i = 0; i < LYR; i++) // lyr == 10
+			for (int i = 0; i < brain->LYR; i++) // lyr == 10
 			{
-				for (int j = 0; j < LYR; j++) // lyr == 10 wieghts
+				for (int j = 0; j < brain->LYR; j++) // lyr == 10 wieghts
 				{
-					brain->mutants[b*(poolSize / pick)][k][i][j] = brain->w_matrix[brain->survivors[b]][k][i][j]; 
+					brain->mutants[b*(brain->poolSize / brain->pick)][k][i][j] = brain->w_matrix[brain->survivors[b]][k][i][j];
 				}
 			}
 		}
 		//mutates ith survaivor
-		for (int x = 1; x < (poolSize / pick); x++) // x = 1 to account for b = 10 (what does that mean!!!)
+		for (int x = 1; x < (brain->poolSize / brain->pick); x++) // x = 1 to account for b = 10 (what does that mean!!!)
 		{
-			for (int k = 0; k < layers - 1; k++) // for 2 layers + output
+			for (int k = 0; k < brain->layers - 1; k++) // for 2 layers + output
 			{
-				for (int i = 0; i < LYR; i++) // nodes
+				for (int i = 0; i < brain->LYR; i++) // nodes
 				{
-					for (int j = 0; j < LYR; j++) // weights
+					for (int j = 0; j < brain->LYR; j++) // weights
 					{
 						float coin = randVal(1);
-						if (coin < .1)
+						if (coin < brain->chances[brain->chance])
 						{
-							brain->mutants[x + (b * (poolSize / pick))][k][i][j] =
-								brain->mutants[b * (poolSize / pick)][k][i][j] + (randVal(1)/x); 
+							brain->mutants[x + (b * (brain->poolSize / brain->pick))][k][i][j] =
+								brain->mutants[b * (brain->poolSize / brain->pick)][k][i][j] + ((randVal(1) - .5) /brain->Mutation);
 						}
 						else
 						{
-							brain->mutants[x + (b * (poolSize / pick))][k][i][j] = brain->mutants[b * (poolSize / pick)][k][i][j];
+							brain->mutants[x + (b * (brain->poolSize / brain->pick))][k][i][j] = brain->mutants[b * (brain->poolSize / brain->pick)][k][i][j];
 						}
 					}
 				}
@@ -319,8 +329,3 @@ float Pool::randVal(float x)
 	return x * (((float)rand()) / RAND_MAX);
 }
 
-/*Pool::~Pool(void)
-{
-	free(wolfBrain);
-	free(preyBrain);
-}*/

@@ -1,5 +1,8 @@
 #pragma once
 #include "neural_net.h"
+#include "Button.h"
+
+
 struct thread_data {
 	Pool* pool;
 	sf::RenderWindow* window;
@@ -17,3 +20,7 @@ struct thread_data {
 
 
 void train(thread_data* ptrs);
+void menu(sf::RenderWindow *window, Pool* pool);
+void wolf_menu(Pool *pool, Row *rows[10]);
+void prey_menu(Pool *pool, Row *rows[10]);
+void trainMenu(Pool *pool, Row *rows[10]);

@@ -16,7 +16,6 @@ using namespace sf;
 
 Loop::Loop()
 {
-	
 	font.loadFromFile("Chapaza.ttf");
 	hud.setFont(font);
 	stats.setFont(font);
@@ -38,7 +37,6 @@ int Loop::draw(sf::RenderWindow *window, Wolf* wolf, Prey prey)
 	window->draw(wolf->getShape());
 	window->draw(prey.getShape());
 
-
 	// Draw our score
 	window->draw(hud);
 	window->draw(stats);
@@ -52,55 +50,75 @@ int Loop::draw(sf::RenderWindow *window, Wolf* wolf, Prey prey)
 
 int Loop::gameLoop(Pool* pool, int mem, int p_mem, int frameCount, Wolf *wolf, Prey *prey)
 {
-	if (frameCount % 10 == 0) {
+	//wolf stuff
+
+	if (frameCount % 5 == 0) {
 		pool->runNet(prey, wolf, mem, pool->wolfBrain, wolf->controls);
 	}
 	wolf->direct();
+
+	//handle wolf hitting edge of window
 	if (wolf->getPosition().top < 15)
 	{
-		wolf->position.y = 15;
+		//wolf->position.y = 15;
+		wolf->position.y = windowHeight - 10;
 	}
 	else if (wolf->getPosition().top > windowHeight - 10)
 	{
-		wolf->position.y = windowHeight - 10;
+		wolf->position.y = 15;
+		//wolf->position.y = windowHeight - 10;
 	}
 	if (wolf->getPosition().left < 0)
 	{
-		wolf->position.x = 0;
+		//wolf->position.x = 0;
+		wolf->position.x = windowWidth - 10;
 	}
 	else if (wolf->getPosition().left + 10 > windowWidth)
 	{
-		wolf->position.x = windowWidth - 10;
+		//wolf->position.x = windowWidth - 10;
+		wolf->position.x = 0;
 	}
+	wolf->update();
 
-	if ((frameCount + 5) % 10 == 0) {
-		pool->runNet(prey, wolf, p_mem, pool->preyBrain, prey->controls);
-	}
-
-	//prey bounces
-	//p_inactive(prey);
-	prey->direct();
-	
-	
-	
-	//handle prey hiiting 
-	if (prey->getPosition().top < 15)
+	if (pool->values.prey_mobile == 1)
 	{
-		prey->position.y = 15;
+		if (pool->values.prey_active == 0)
+		{
+			p_inactive(prey, pool);
+			prey->direct_inactive();
+		}
+		else
+		{
+			if ((frameCount + 5) % 5 == 0)
+			{
+				pool->runNet(prey, wolf, p_mem, pool->preyBrain, prey->controls);
+			}
+			prey->direct();
+		}
+			//handle prey hiiting edge of window.
+		if (prey->getPosition().top < 15)
+		{
+			//prey->position.y = 15;
+			prey->position.y = windowHeight - 10;
+		}
+		else if (prey->getPosition().top > windowHeight - 10)
+		{
+			//prey->position.y = windowHeight - 10;
+			prey->position.y = 15;
+		}
+		if (prey->getPosition().left < 0)
+		{
+			//prey->position.x = 0;
+			prey->position.x = windowWidth - 10;
+		}
+		else if (prey->getPosition().left + 10 > windowWidth)
+		{
+			//prey->position.x = windowWidth - 10;
+			prey->position.x = 0;
+		}
+		
+		prey->update();
 	}
-	else if (prey->getPosition().top > windowHeight - 10)
-	{
-		prey->position.y = windowHeight - 10;
-	}
-	if (prey->getPosition().left < 0)
-	{
-		prey->position.x = 0;
-	}
-	else if (prey->getPosition().left + 10 > windowWidth)
-	{
-		prey->position.x = windowWidth - 10;
-	}
-	
 	
 	// prey gets caught?
 
@@ -109,8 +127,9 @@ int Loop::gameLoop(Pool* pool, int mem, int p_mem, int frameCount, Wolf *wolf, P
 		prey->reset(windowWidth, windowHeight);
 		score++;
 	}
-	if ((prey->getPositionX() < (windowWidth / 5) * 4 && prey->getPositionX() > windowWidth / 5) 
-		&& (prey->getPositionY() < (windowHeight / 5) * 4 && prey->getPositionY() > windowHeight / 5))
+	//prey doesnt get caught and scores // this system needs some more work.
+	if ((prey->getPositionX() < (windowWidth / feedGround) * (feedGround - 1) && prey->getPositionX() > windowWidth / feedGround) 
+		&& (prey->getPositionY() < (windowHeight / feedGround) * (feedGround - 1) && prey->getPositionY() > windowHeight / feedGround))
 	{
 		if (score == 0)
 		{
@@ -118,12 +137,7 @@ int Loop::gameLoop(Pool* pool, int mem, int p_mem, int frameCount, Wolf *wolf, P
 		}
 	}
 	
-	prey->update();
-	
-	wolf->update();
-	
 	return score;
-	
 }
 	
 
@@ -132,11 +146,11 @@ int Loop::animate(sf::RenderWindow *window, Pool* pool, Pool *cpy, thread_data* 
 {
 	//continualy send one frame to loop
 	//add wolf and prey.
-	
-	Wolf wolf(pool->Width / 2, pool->Height / 2, pool->Width, pool->Height);
+
+	Wolf wolf(pool->values.Width / 2, pool->values.Height / 2, pool->values.Width, pool->values.Height, pool->values.wolfSpeed);
 
 
-	Prey prey(pool->Width / 2, 300);
+	Prey prey(pool->values.Width / 2, 300, pool->values.preySpeed);
 	int champ = pool->wolfBrain->champion;
 	
 	int p_champ = pool->preyBrain->champion;
@@ -156,9 +170,21 @@ int Loop::animate(sf::RenderWindow *window, Pool* pool, Pool *cpy, thread_data* 
 			train.detach();
 			pool->buisy = true;
 		}
-		
 
+		if (Keyboard::isKeyPressed(Keyboard::Space))
+		{
+			//wait untill space is released
+			while (Keyboard::isKeyPressed(Keyboard::Space))
+			{
 
+			}
+			//pull up menu
+			menu(window, pool);
+		}
+		if (Keyboard::isKeyPressed(Keyboard::BackSpace))
+		{
+			return 0;
+		}
 		gameLoop(pool, champ, p_champ, frameCount, &wolf, &prey);
 		
 		// Update the HUD text
@@ -183,10 +209,10 @@ int Loop::animate(sf::RenderWindow *window, Pool* pool, Pool *cpy, thread_data* 
 
 void Loop::train(Pool* pool, int sec)
 {
-	for (int i = 0; i < pool->poolSize; i++)
+	for (int i = 0; i < pool->wolfBrain->poolSize; i++)
 	{
-		Wolf wolf(pool->Width / 2, pool->Height / 2, pool->Width, pool->Height);
-		Prey prey(pool->Width / 2, 300);
+		Wolf wolf(pool->values.Width / 2, pool->values.Height / 2, pool->values.Width, pool->values.Height, pool->values.wolfSpeed);
+		Prey prey(pool->values.Width / 2, 300, pool->values.preySpeed);
 		score = 0;
 		p_score = 0;
 		for (int framecount = 0; framecount < fps * sec; framecount++)
@@ -195,7 +221,6 @@ void Loop::train(Pool* pool, int sec)
 		}
 		pool->wolfBrain->results[i] = score;
 		pool->preyBrain->results[i] = p_score;
-
 	}
 	
 	return;
@@ -203,15 +228,15 @@ void Loop::train(Pool* pool, int sec)
 
 
 
-void Loop::p_inactive(Prey *prey)
+void Loop::p_inactive(Prey *prey, Pool *pool)
 {
-	if (prey->getPosition().top < windowHeight / 3 || prey->getPosition().top >(windowHeight / 3) * 2)
+	if (prey->getPosition().top < windowHeight / pool->values.prey_constraint || prey->getPosition().top >(windowHeight / pool->values.prey_constraint) * (pool->values.prey_constraint - 1))
 	{
 		prey->reboundBatOrTop();
 
 	}
 	// Handle prey hitting sides
-	if (prey->getPosition().left < windowWidth / 3 || prey->getPosition().left + 10 >(windowWidth / 3) * 2)
+	if (prey->getPosition().left < windowWidth / pool->values.prey_constraint || prey->getPosition().left + 10 >(windowWidth / pool->values.prey_constraint) * (pool->values.prey_constraint - 1))
 	{
 		prey->reboundSides();
 	}
